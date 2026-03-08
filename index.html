@@ -21,6 +21,7 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 // Set a non-empty workerSrc so PDF.js doesn't emit "No workerSrc specified" deprecation.
@@ -326,6 +327,122 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   .cookie-btn-yes:hover { background: rgba(201,168,76,0.28); }
   .cookie-btn-no  { background: transparent; border-color: var(--border-light); color: var(--text-dim); }
   .cookie-btn-no:hover  { border-color: var(--text-dim); color: var(--text); }
+
+  /* SharePoint browser modal */
+  .sp-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 1100; align-items: center; justify-content: center;
+  }
+  .sp-overlay.visible { display: flex; }
+  .sp-modal {
+    background: var(--surface2); border: 1px solid var(--border-light);
+    border-radius: 12px; width: min(780px, 94vw); max-height: 85vh;
+    display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    overflow: hidden;
+  }
+  .sp-modal-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .sp-modal-header h3 {
+    font-family: 'Playfair Display', serif; font-size: 16px; color: var(--text); flex: 1;
+  }
+  .sp-modal-close {
+    background: none; border: none; color: var(--text-dim); font-size: 18px;
+    cursor: pointer; padding: 2px 6px; border-radius: 4px;
+  }
+  .sp-modal-close:hover { color: var(--text); background: var(--border); }
+
+  /* Config section */
+  .sp-config {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .sp-config-row {
+    display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+  }
+  .sp-config-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px; }
+  .sp-config-field label { font-size: 10px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .sp-config-field input {
+    background: var(--surface2); border: 1px solid var(--border-light); border-radius: 5px;
+    color: var(--text); font-size: 11.5px; padding: 5px 9px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .sp-config-field input:focus { outline: none; border-color: var(--gold-dim); }
+  .sp-config-field input::placeholder { color: var(--text-faint); }
+
+  /* Auth status bar */
+  .sp-auth-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0; background: var(--surface);
+  }
+  .sp-auth-status { font-size: 12px; color: var(--text-dim); flex: 1; }
+  .sp-auth-status.logged-in { color: var(--teal); }
+  .sp-btn {
+    padding: 6px 14px; border-radius: 6px; font-size: 11.5px; cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; border: 1px solid;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .sp-btn-primary { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+  .sp-btn-primary:hover { background: rgba(78,205,196,0.25); }
+  .sp-btn-secondary { background: transparent; border-color: var(--border-light); color: var(--text-dim); }
+  .sp-btn-secondary:hover { border-color: var(--text-dim); color: var(--text); }
+  .sp-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Breadcrumb */
+  .sp-breadcrumb {
+    display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+    padding: 8px 20px; border-bottom: 1px solid var(--border);
+    font-size: 11px; color: var(--text-dim); flex-shrink: 0;
+    min-height: 34px;
+  }
+  .sp-breadcrumb-item {
+    cursor: pointer; color: var(--gold); padding: 1px 4px; border-radius: 3px;
+  }
+  .sp-breadcrumb-item:hover { background: var(--gold-glow); }
+  .sp-breadcrumb-sep { color: var(--text-faint); }
+  .sp-breadcrumb-current { color: var(--text-dim); }
+
+  /* File list */
+  .sp-file-list {
+    flex: 1; overflow-y: auto; padding: 8px 0;
+  }
+  .sp-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 20px; cursor: pointer; transition: background 0.1s;
+    font-size: 12.5px;
+  }
+  .sp-item:hover { background: var(--surface); }
+  .sp-item.selected { background: var(--gold-glow); }
+  .sp-item-icon { font-size: 15px; flex-shrink: 0; width: 20px; text-align: center; }
+  .sp-item-name { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp-item-meta { font-size: 10.5px; color: var(--text-faint); white-space: nowrap; }
+  .sp-item-cb { accent-color: var(--gold); width: 14px; height: 14px; flex-shrink: 0; }
+  .sp-empty { padding: 32px 20px; text-align: center; color: var(--text-faint); font-size: 12.5px; }
+  .sp-loading { padding: 32px 20px; text-align: center; color: var(--text-dim); font-size: 12.5px; }
+
+  /* Footer */
+  .sp-footer {
+    display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    padding: 12px 20px; border-top: 1px solid var(--border); flex-shrink: 0;
+    background: var(--surface);
+  }
+  .sp-sel-count { font-size: 11.5px; color: var(--text-dim); }
+  .sp-footer-btns { display: flex; gap: 8px; }
+
+  /* SharePoint button in left panel */
+  .load-btn-sp {
+    background: var(--teal-dim); border-color: var(--teal); color: var(--teal);
+    border-style: solid; border-width: 1px;
+  }
+  .load-btn-sp:hover { background: rgba(78,205,196,0.25); }
+  .sp-login-badge {
+    display: none; font-size: 10px; color: var(--teal);
+    text-align: center; margin-top: 4px; font-family: 'IBM Plex Mono', monospace;
+  }
+  .sp-login-badge.visible { display: block; }
 </style>
 </head>
 <body>
@@ -364,7 +481,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
       <p>Sleep bestanden of een map hierheen</p>
       <div class="load-btns">
         <button class="load-btn load-btn-folder" id="btn-dossier">🗂 Dossier laden</button>
+        <button class="load-btn load-btn-sp" id="btn-sharepoint">☁ SharePoint</button>
       </div>
+      <div class="sp-login-badge" id="sp-login-badge">✓ Ingelogd bij Microsoft</div>
       <div class="formats">.txt · .md · .docx · .eml · .pdf</div>
     </div>
     <div class="doc-list-header" id="doc-list-header" style="display:none;">
@@ -425,6 +544,46 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
     </div>
   </div>
 
+</div>
+
+<!-- SharePoint browser modal -->
+<div class="sp-overlay" id="sp-overlay">
+  <div class="sp-modal">
+    <div class="sp-modal-header">
+      <h3>☁ SharePoint bestandsbrowser</h3>
+      <button class="sp-modal-close" id="sp-close" title="Sluiten">✕</button>
+    </div>
+    <div class="sp-config">
+      <div class="sp-config-row">
+        <div class="sp-config-field">
+          <label>Azure App Client ID</label>
+          <input type="text" id="sp-client-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="sp-config-field" style="max-width:220px;">
+          <label>Tenant ID (of "common")</label>
+          <input type="text" id="sp-tenant-id" placeholder="common" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </div>
+    <div class="sp-auth-bar">
+      <span class="sp-auth-status" id="sp-auth-status">Niet ingelogd</span>
+      <button class="sp-btn sp-btn-primary" id="sp-login-btn">🔑 Inloggen met Microsoft</button>
+      <button class="sp-btn sp-btn-secondary" id="sp-logout-btn" style="display:none;">Uitloggen</button>
+    </div>
+    <div class="sp-breadcrumb" id="sp-breadcrumb">
+      <span style="color:var(--text-faint);font-size:11px;">Log eerst in om te bladeren</span>
+    </div>
+    <div class="sp-file-list" id="sp-file-list">
+      <div class="sp-empty">Log in met uw Microsoft-account om SharePoint-bestanden te openen.</div>
+    </div>
+    <div class="sp-footer">
+      <span class="sp-sel-count" id="sp-sel-count">Geen bestanden geselecteerd</span>
+      <div class="sp-footer-btns">
+        <button class="sp-btn sp-btn-secondary" id="sp-cancel-btn">Annuleren</button>
+        <button class="sp-btn sp-btn-primary" id="sp-load-btn" disabled>⬇ Laden in dossier</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Cookie consent dialog -->
@@ -1033,6 +1192,313 @@ document.getElementById('cookie-yes').onclick = () => {
 document.getElementById('cookie-no').onclick = () => {
   document.getElementById('cookie-overlay').classList.remove('visible');
 };
+
+// ── SharePoint / Microsoft Graph integration ───────────────────────────────
+
+const SP_STORAGE_KEY = 'ldaia_sp_config';
+
+function saveSpConfig() {
+  try {
+    localStorage.setItem(SP_STORAGE_KEY, JSON.stringify({
+      clientId: document.getElementById('sp-client-id').value.trim(),
+      tenantId: document.getElementById('sp-tenant-id').value.trim() || 'common'
+    }));
+  } catch(e) {}
+}
+function loadSpConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem(SP_STORAGE_KEY) || '{}');
+    if (c.clientId) document.getElementById('sp-client-id').value = c.clientId;
+    if (c.tenantId) document.getElementById('sp-tenant-id').value = c.tenantId;
+  } catch(e) {}
+}
+loadSpConfig();
+document.getElementById('sp-client-id').addEventListener('change', saveSpConfig);
+document.getElementById('sp-tenant-id').addEventListener('change', saveSpConfig);
+
+let msalApp = null;
+let spAccount = null;
+let spToken = null;
+const spState = { crumbs: [], selectedFiles: new Map() };
+
+function getSpConfig() {
+  const clientId = document.getElementById('sp-client-id').value.trim();
+  const tenantId = document.getElementById('sp-tenant-id').value.trim() || 'common';
+  return { clientId, tenantId };
+}
+
+function getMsalApp() {
+  const { clientId, tenantId } = getSpConfig();
+  if (!clientId) throw new Error('Voer eerst een Azure App Client ID in.');
+  const cfg = {
+    auth: {
+      clientId,
+      authority: `https://login.microsoftonline.com/${tenantId}`,
+      redirectUri: window.location.href.split('?')[0].split('#')[0],
+      navigateToLoginRequestUrl: false,
+    },
+    cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false },
+  };
+  if (!msalApp || msalApp._config?.auth?.clientId !== clientId) {
+    msalApp = new msal.PublicClientApplication(cfg);
+  }
+  return msalApp;
+}
+
+const SP_SCOPES = ['Files.Read.All', 'Sites.Read.All', 'User.Read', 'offline_access'];
+
+async function spLogin() {
+  try {
+    const app = getMsalApp();
+    await app.initialize();
+    const resp = await app.loginPopup({ scopes: SP_SCOPES });
+    spAccount = resp.account;
+    spToken = resp.accessToken;
+    onSpLoggedIn(spAccount.name || spAccount.username);
+    spBrowseSites();
+  } catch(e) {
+    spSetStatus('Inloggen mislukt: ' + (e.message || e), false);
+  }
+}
+
+async function spGetToken() {
+  if (!msalApp || !spAccount) throw new Error('Niet ingelogd');
+  try {
+    const resp = await msalApp.acquireTokenSilent({ scopes: SP_SCOPES, account: spAccount });
+    spToken = resp.accessToken;
+    return spToken;
+  } catch(e) {
+    const resp = await msalApp.acquireTokenPopup({ scopes: SP_SCOPES });
+    spToken = resp.accessToken;
+    return spToken;
+  }
+}
+
+async function graphFetch(path) {
+  const token = await spGetToken();
+  const url = path.startsWith('https://') ? path : 'https://graph.microsoft.com/v1.0' + path;
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' } });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err.error && err.error.message) || ('Graph API fout ' + res.status));
+  }
+  return res.json();
+}
+
+async function graphFetchBytes(path) {
+  const token = await spGetToken();
+  const url = path.startsWith('https://') ? path : 'https://graph.microsoft.com/v1.0' + path;
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+  if (!res.ok) throw new Error('Download fout ' + res.status);
+  return res.arrayBuffer();
+}
+
+function onSpLoggedIn(name) {
+  spSetStatus('✓ Ingelogd als ' + name, true);
+  document.getElementById('sp-login-btn').style.display = 'none';
+  document.getElementById('sp-logout-btn').style.display = '';
+  document.getElementById('sp-login-badge').classList.add('visible');
+}
+
+function spSetStatus(msg, ok) {
+  const el = document.getElementById('sp-auth-status');
+  el.textContent = msg;
+  el.className = 'sp-auth-status' + (ok ? ' logged-in' : '');
+}
+
+function spLogout() {
+  spAccount = null; spToken = null; msalApp = null;
+  spState.crumbs = []; spState.selectedFiles.clear();
+  spSetStatus('Niet ingelogd', false);
+  document.getElementById('sp-login-btn').style.display = '';
+  document.getElementById('sp-logout-btn').style.display = 'none';
+  document.getElementById('sp-login-badge').classList.remove('visible');
+  document.getElementById('sp-breadcrumb').innerHTML = '<span style="color:var(--text-faint);font-size:11px;">Log eerst in om te bladeren</span>';
+  document.getElementById('sp-file-list').innerHTML = '<div class="sp-empty">Log in met uw Microsoft-account om SharePoint-bestanden te openen.</div>';
+  spUpdateFooter();
+}
+
+function spLoading() {
+  document.getElementById('sp-file-list').innerHTML = '<div class="sp-loading">⏳ Laden\u2026</div>';
+}
+function spError(msg) {
+  document.getElementById('sp-file-list').innerHTML = '<div class="sp-empty">\u26a0 ' + msg + '</div>';
+}
+
+function spSetCrumbs(crumbs) {
+  spState.crumbs = crumbs;
+  const el = document.getElementById('sp-breadcrumb');
+  if (!crumbs.length) { el.innerHTML = ''; return; }
+  el.innerHTML = crumbs.map(function(c, i) {
+    if (i === crumbs.length - 1) return '<span class="sp-breadcrumb-current">' + c.label + '</span>';
+    return '<span class="sp-breadcrumb-item" onclick="(' + c.action + ')()">' + c.label + '</span><span class="sp-breadcrumb-sep">\u203a</span>';
+  }).join('');
+}
+
+async function spBrowseSites() {
+  spLoading();
+  spSetCrumbs([{ label: '\ud83c\udfe0 Sites', action: 'spBrowseSites' }]);
+  try {
+    const data = await graphFetch('/sites?search=*&$select=id,displayName,webUrl&$top=50');
+    const sites = data.value || [];
+    if (!sites.length) { spError('Geen SharePoint-sites gevonden.'); return; }
+    document.getElementById('sp-file-list').innerHTML = sites.map(function(s) {
+      return '<div class="sp-item" onclick="spBrowseDrives(\'' + esc(s.id) + '\',\'' + esc(s.displayName) + '\')">'
+        + '<span class="sp-item-icon">\ud83c\udfe2</span>'
+        + '<span class="sp-item-name">' + esc(s.displayName) + '</span>'
+        + '<span class="sp-item-meta">' + esc(s.webUrl.replace('https://','')) + '</span>'
+        + '</div>';
+    }).join('');
+  } catch(e) { spError(e.message); }
+}
+
+async function spBrowseDrives(siteId, siteName) {
+  spLoading();
+  spSetCrumbs([
+    { label: '\ud83c\udfe0 Sites', action: 'spBrowseSites' },
+    { label: siteName, action: 'function(){spBrowseDrives(\'' + siteId + '\',\'' + siteName + '\')}' }
+  ]);
+  try {
+    const data = await graphFetch('/sites/' + siteId + '/drives?$select=id,name');
+    const drives = data.value || [];
+    if (!drives.length) { spError('Geen documentbibliotheken gevonden.'); return; }
+    document.getElementById('sp-file-list').innerHTML = drives.map(function(d) {
+      return '<div class="sp-item" onclick="spBrowseFolder(\'' + esc(d.id) + '\',\'root\',\'' + esc(siteId) + '\',\'' + esc(siteName) + '\',\'[]\',\'' + esc(d.name) + '\')">'
+        + '<span class="sp-item-icon">\ud83d\udcda</span>'
+        + '<span class="sp-item-name">' + esc(d.name) + '</span>'
+        + '</div>';
+    }).join('');
+  } catch(e) { spError(e.message); }
+}
+
+async function spBrowseFolder(driveId, itemId, siteId, siteName, crumbsJson, label) {
+  spLoading();
+  var prevCrumbs = [];
+  try { prevCrumbs = JSON.parse(decodeURIComponent(crumbsJson)); } catch(e) {}
+  var crumbs = [
+    { label: '\ud83c\udfe0 Sites', action: 'spBrowseSites' },
+    { label: siteName, action: 'function(){spBrowseDrives(\'' + siteId + '\',\'' + siteName + '\')}' }
+  ].concat(prevCrumbs).concat([{ label: label }]);
+  spSetCrumbs(crumbs);
+
+  try {
+    var path = itemId === 'root'
+      ? '/drives/' + driveId + '/root/children'
+      : '/drives/' + driveId + '/items/' + itemId + '/children';
+    var data = await graphFetch(path + '?$select=id,name,size,file,folder,lastModifiedDateTime&$top=200');
+    var items = data.value || [];
+    if (!items.length) {
+      document.getElementById('sp-file-list').innerHTML = '<div class="sp-empty">Deze map is leeg.</div>';
+      return;
+    }
+    var SUPPORTED_EXT = ['txt','md','docx','eml','pdf'];
+    // next crumbs for children
+    var nextPrev = encodeURIComponent(JSON.stringify(prevCrumbs.concat([{ label: label }])));
+    document.getElementById('sp-file-list').innerHTML = items.map(function(it) {
+      var isFolder = !!it.folder;
+      var ext = isFolder ? '' : (it.name.split('.').pop() || '').toLowerCase();
+      var supported = !isFolder && SUPPORTED_EXT.includes(ext);
+      var icon = isFolder ? '\ud83d\udcc1' : (ext==='pdf'?'\ud83d\udcd5':ext==='docx'?'\ud83d\udcdd':ext==='eml'?'\ud83d\udce7':'\ud83d\udcc4');
+      var sz = it.size ? fmtBytes(it.size) : '';
+      if (isFolder) {
+        return '<div class="sp-item" onclick="spBrowseFolder(\'' + esc(driveId) + '\',\'' + esc(it.id) + '\',\'' + esc(siteId) + '\',\'' + esc(siteName) + '\',\'' + nextPrev + '\',\'' + esc(it.name) + '\')">'
+          + '<span class="sp-item-icon">' + icon + '</span>'
+          + '<span class="sp-item-name">' + esc(it.name) + '</span>'
+          + '<span class="sp-item-meta">' + (it.folder.childCount||0) + ' items</span>'
+          + '</div>';
+      }
+      if (!supported) {
+        return '<div class="sp-item" style="opacity:0.4;cursor:default;">'
+          + '<span class="sp-item-icon">' + icon + '</span>'
+          + '<span class="sp-item-name">' + esc(it.name) + '</span>'
+          + '<span class="sp-item-meta">' + sz + ' \u00b7 niet ondersteund</span>'
+          + '</div>';
+      }
+      var sel = spState.selectedFiles.has(it.id);
+      return '<div class="sp-item' + (sel?' selected':'') + '" id="spitem-' + esc(it.id) + '" onclick="spToggleFile(\'' + esc(driveId) + '\',\'' + esc(it.id) + '\',\'' + esc(it.name) + '\',' + (it.size||0) + ')">'
+        + '<input type="checkbox" class="sp-item-cb"' + (sel?' checked':'') + ' onclick="event.stopPropagation();spToggleFile(\'' + esc(driveId) + '\',\'' + esc(it.id) + '\',\'' + esc(it.name) + '\',' + (it.size||0) + ')">'
+        + '<span class="sp-item-icon">' + icon + '</span>'
+        + '<span class="sp-item-name">' + esc(it.name) + '</span>'
+        + '<span class="sp-item-meta">' + sz + '</span>'
+        + '</div>';
+    }).join('');
+  } catch(e) { spError(e.message); }
+}
+
+function spToggleFile(driveId, itemId, name, size) {
+  if (spState.selectedFiles.has(itemId)) {
+    spState.selectedFiles.delete(itemId);
+  } else {
+    spState.selectedFiles.set(itemId, { driveId, itemId, name, size });
+  }
+  var row = document.getElementById('spitem-' + itemId);
+  if (row) {
+    var cb = row.querySelector('.sp-item-cb');
+    if (spState.selectedFiles.has(itemId)) { row.classList.add('selected'); if(cb) cb.checked=true; }
+    else { row.classList.remove('selected'); if(cb) cb.checked=false; }
+  }
+  spUpdateFooter();
+}
+
+function spUpdateFooter() {
+  var n = spState.selectedFiles.size;
+  document.getElementById('sp-sel-count').textContent =
+    n === 0 ? 'Geen bestanden geselecteerd' : n + ' bestand' + (n===1?'':'en') + ' geselecteerd';
+  document.getElementById('sp-load-btn').disabled = n === 0;
+}
+
+async function addSingleFile(file) {
+  var ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (file.name.startsWith('~$') || !['txt','md','docx','eml','pdf'].includes(ext)) return;
+  var id = 'doc_' + (++docCounter);
+  state.docs[id] = { name: file.name, type: ext, text: '', size: file.size };
+  state.docOrder.push(id);
+  var text = await readFile(file);
+  state.docs[id].text = text;
+  var isFirst = Object.keys(state.docs).length === 1;
+  renderDocList();
+  if (isFirst) generateDossierOverview();
+}
+
+async function spLoadSelected() {
+  var files = [...spState.selectedFiles.values()];
+  if (!files.length) return;
+  document.getElementById('sp-load-btn').disabled = true;
+  document.getElementById('sp-load-btn').textContent = '\u23f3 Bezig\u2026';
+  var failed = [];
+  for (var f of files) {
+    try {
+      var buf = await graphFetchBytes('/drives/' + f.driveId + '/items/' + f.itemId + '/content');
+      var blob = new Blob([buf]);
+      var fileObj = new File([blob], f.name);
+      await addSingleFile(fileObj);
+    } catch(e) {
+      failed.push(f.name + ' (' + e.message + ')');
+    }
+  }
+  spState.selectedFiles.clear();
+  spUpdateFooter();
+  document.getElementById('sp-load-btn').textContent = '\u2b07 Laden in dossier';
+  document.getElementById('sp-overlay').classList.remove('visible');
+  if (failed.length) alert('Niet geladen:\n' + failed.join('\n'));
+}
+
+// Open / close SharePoint modal
+document.getElementById('btn-sharepoint').onclick = () => {
+  document.getElementById('sp-overlay').classList.add('visible');
+};
+document.getElementById('sp-close').onclick = () => {
+  document.getElementById('sp-overlay').classList.remove('visible');
+};
+document.getElementById('sp-cancel-btn').onclick = () => {
+  document.getElementById('sp-overlay').classList.remove('visible');
+};
+document.getElementById('sp-overlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('visible');
+});
+document.getElementById('sp-login-btn').onclick = spLogin;
+document.getElementById('sp-logout-btn').onclick = spLogout;
+document.getElementById('sp-load-btn').onclick = spLoadSelected;
 
 renderDocList();
 </script>
