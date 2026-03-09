@@ -1178,7 +1178,7 @@ function formatAI(text) {
   // Helper: render an ECLI as a link that opens directly in new tab (rechtspraak.nl blocks iframes)
   function ecliHtml(ecli) {
     const id = ecli.trim();
-    const rsUrl = 'https://uitspraken.rechtspraak.nl/details?id=' + encodeURIComponent(id);
+    const rsUrl = 'https://uitspraken.rechtspraak.nl/details?id=' + id;
     return `<a class="legal-link ecli-link" onclick="event.preventDefault();openLegal('${escA(rsUrl)}','${escA(id)}')" href="${esc(rsUrl)}" target="_blank" rel="noopener" title="Bekijk op rechtspraak.nl (opent in nieuw tabblad)">⚖ ${esc(id)} <span class="ecli-warn" title="Verifieer: Claude kan ECLI-nummers soms onjuist weergeven">?</span></a>`;
   }
 
@@ -1232,11 +1232,13 @@ function formatAI(text) {
 
   html = html.replace(wetRegex, (match, artikel, wet) => {
     const wetKey = Object.keys(WET_MAP).find(k => k.toLowerCase() === wet.toLowerCase()) || wet;
-    const bwbId = WET_MAP[wetKey];
-    const url = bwbId
-      ? `https://wetten.overheid.nl/${bwbId}`
-      : `https://wetten.overheid.nl/zoeken?zoekterm=${encodeURIComponent(wet + ' artikel ' + artikel)}`;
-    return `<a class="legal-link" onclick="event.preventDefault();openLegal('${escA(url)}','${escA(match)}')" href="${esc(url)}" target="_blank" rel="noopener" title="Bekijk wet op wetten.nl (opent in nieuw tabblad)">📜 ${esc(match)}</a>`;
+    const artnr = artikel.replace(/.*[:\.]/, '');
+    const boekMatch = artikel.match(/^(\d+)[:.]/);
+    const titelPart = boekMatch ? `/titel/Boek%20${boekMatch[1]}` : '';
+    const today = new Date();
+    const d = String(today.getDate()).padStart(2,'0') + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + today.getFullYear();
+    const url = `https://wetten.overheid.nl/zoeken/zoekresultaat/rs/2,3,4${titelPart}/titelf/1/tekstf/1/artnr/${encodeURIComponent(artnr)}/artnrb/0/d/${d}/dx/0`;
+    return `<a class="legal-link" onclick="event.preventDefault();openLegal('${escA(url)}','${escA(match)}')" href="${esc(url)}" target="_blank" rel="noopener" title="Zoek artikel ${esc(artikel)} op wetten.nl (opent in nieuw tabblad)">📜 ${esc(match)}</a>`;
   });
 
   html = html.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
@@ -1653,17 +1655,66 @@ document.getElementById('api-key-input').addEventListener('change', function() {
   } else if (loadApiKey()) {
     // Already consented — update silently
     saveApiKey(key);
+    validateApiKey(key);
   }
 });
 
 document.getElementById('cookie-yes').onclick = () => {
   const key = document.getElementById('api-key-input').value.trim();
-  if (key) saveApiKey(key);
+  if (key) { saveApiKey(key); validateApiKey(key); }
   document.getElementById('cookie-overlay').classList.remove('visible');
 };
 document.getElementById('cookie-no').onclick = () => {
   document.getElementById('cookie-overlay').classList.remove('visible');
 };
+
+async function validateApiKey(key) {
+  document.getElementById('chat-empty').style.display = 'none';
+  const area = document.getElementById('chat-area');
+  // Remove previous validation msg if any
+  const prev = document.getElementById('apikey-validate-msg');
+  if (prev) prev.remove();
+  // Spinner
+  const spinner = document.createElement('div');
+  spinner.id = 'apikey-validate-msg';
+  spinner.className = 'msg ai';
+  spinner.innerHTML = `<div class="msg-header"><div class="msg-avatar">AI</div><span class="msg-role">assistent</span></div><div class="msg-body"><div class="thinking-dots"><span></span><span></span><span></span></div></div>`;
+  area.appendChild(spinner);
+  area.scrollTop = area.scrollHeight;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 10, messages: [{ role: 'user', content: 'Hi' }] })
+    });
+    spinner.remove();
+    const div = document.createElement('div');
+    div.id = 'apikey-validate-msg';
+    div.className = 'msg ai';
+    if (res.ok) {
+      div.innerHTML = `<div class="msg-header"><div class="msg-avatar">AI</div><span class="msg-role">assistent</span></div><div class="msg-body" style="border-color:rgba(78,205,196,0.35)">✅ API-sleutel is geldig. U kunt aan de slag.</div>`;
+    } else {
+      const err = await res.json().catch(() => ({}));
+      const msg = err?.error?.message || `HTTP ${res.status}`;
+      div.innerHTML = `<div class="msg-header"><div class="msg-avatar">AI</div><span class="msg-role">assistent</span></div><div class="msg-body" style="border-color:rgba(220,80,80,0.35)">❌ API-sleutel ongeldig: ${esc(msg)}</div>`;
+    }
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+  } catch(e) {
+    spinner.remove();
+    const div = document.createElement('div');
+    div.id = 'apikey-validate-msg';
+    div.className = 'msg ai';
+    div.innerHTML = `<div class="msg-header"><div class="msg-avatar">AI</div><span class="msg-role">assistent</span></div><div class="msg-body" style="border-color:rgba(220,80,80,0.35)">❌ Verbindingsfout bij validatie: ${esc(e.message)}</div>`;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+  }
+}
 
 // ── SharePoint / Microsoft Graph integration ───────────────────────────────
 
