@@ -78,6 +78,15 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   header h1 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
   header h1 span { color: var(--gold); font-style: italic; }
   .header-meta { margin-left: auto; font-size: 11px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; }
+  .session-cost {
+    font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-faint); padding: 3px 10px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface2);
+    white-space: nowrap; transition: color 0.3s, border-color 0.3s;
+    cursor: default;
+  }
+  .session-cost.has-cost { color: var(--gold); border-color: var(--gold-dim); background: var(--gold-glow); }
+  .session-cost title { display: none; }
   .workspace { display: flex; flex: 1; overflow: hidden; }
 
   /* LEFT */
@@ -164,6 +173,29 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
     font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 1px 6px; border-radius: 3px;
     background: var(--teal-dim); border: 1px solid rgba(78,205,196,0.25); color: var(--teal); margin-left: auto;
   }
+  .msg-search-tag {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 1px 6px; border-radius: 3px;
+    background: rgba(80,140,255,0.1); border: 1px solid rgba(80,140,255,0.3); color: #7aaaff;
+    cursor: help;
+  }
+  .wet-confirm {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--surface2); border: 1px solid var(--border-light);
+    border-left: 3px solid var(--gold-dim);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
+    font-size: 12.5px; color: var(--text-dim); animation: fadeUp 0.2s ease;
+  }
+  .wet-confirm span { flex: 1; min-width: 180px; }
+  .wet-confirm-btns { display: flex; gap: 6px; }
+  .wet-confirm-btn {
+    padding: 4px 14px; border-radius: 5px; font-size: 11.5px; font-weight: 500;
+    cursor: pointer; border: 1px solid; font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .wet-confirm-btn.yes { background: var(--gold-glow); border-color: var(--gold-dim); color: var(--gold); }
+  .wet-confirm-btn.yes:hover { background: rgba(201,168,76,0.28); }
+  .wet-confirm-btn.no  { background: transparent; border-color: var(--border-light); color: var(--text-faint); }
+  .wet-confirm-btn.no:hover  { border-color: var(--text-dim); color: var(--text); }
   .msg-body { padding: 12px 14px; border-radius: 8px; font-size: 13.5px; line-height: 1.65; border: 1px solid var(--border); }
   .msg.user .msg-body { background: var(--user-bg); }
   .msg.ai .msg-body { background: var(--ai-bg); }
@@ -207,6 +239,40 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   .input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
   .input-hint { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-faint); }
+
+  /* Wetgeving toggle */
+  .wet-toggle-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-top: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .wet-toggle-label {
+    font-size: 11px; color: var(--text-dim);
+    font-family: 'IBM Plex Sans', sans-serif; flex: 1;
+  }
+  .wet-toggle-label span { color: var(--text-faint); font-size: 10px; }
+  .wet-switch {
+    position: relative; width: 36px; height: 20px; flex-shrink: 0;
+  }
+  .wet-switch input { opacity: 0; width: 0; height: 0; }
+  .wet-slider {
+    position: absolute; inset: 0; background: var(--border-light);
+    border-radius: 20px; cursor: pointer; transition: background 0.2s;
+  }
+  .wet-slider:before {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; left: 3px; top: 3px;
+    background: var(--text-dim); border-radius: 50%; transition: transform 0.2s, background 0.2s;
+  }
+  .wet-switch input:checked + .wet-slider { background: rgba(201,168,76,0.35); }
+  .wet-switch input:checked + .wet-slider:before { transform: translateX(16px); background: var(--gold); }
+  .wet-badge {
+    font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+    padding: 1px 7px; border-radius: 10px; border: 1px solid;
+    transition: all 0.2s;
+  }
+  .wet-badge.off { color: var(--text-faint); border-color: var(--border); }
+  .wet-badge.on  { color: var(--gold); border-color: var(--gold-dim); background: var(--gold-glow); }
   .scope-indicator { font-size: 11px; color: var(--gold); font-family: 'IBM Plex Mono', monospace; }
 
   /* RIGHT */
@@ -229,6 +295,49 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   }
   .viewer-content::-webkit-scrollbar { width: 4px; }
   .viewer-content::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+  /* Web viewer (iframe) */
+  #viewer-web {
+    display: none; flex: 1; flex-direction: column; overflow: hidden;
+  }
+  #viewer-web .viewer-header { padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  #viewer-web .viewer-title { flex: 1; font-size: 11px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .viewer-web-url {
+    font-size: 10px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace;
+    padding: 4px 14px 6px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .viewer-web-url a { color: var(--gold); text-decoration: none; }
+  .viewer-web-url a:hover { text-decoration: underline; }
+  #viewer-iframe {
+    flex: 1; border: none; background: #fff;
+    width: 100%; height: 100%;
+  }
+  .viewer-web-blocked {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 10px; padding: 20px; text-align: center;
+    color: var(--text-faint); font-size: 12px; line-height: 1.6;
+  }
+  .viewer-web-blocked a {
+    color: var(--teal); text-decoration: none; font-size: 12px;
+    padding: 6px 14px; border: 1px solid rgba(78,205,196,0.3);
+    border-radius: 6px; background: var(--teal-dim);
+  }
+  .viewer-web-blocked a:hover { background: rgba(78,205,196,0.25); }
+  /* Legal link style in chat */
+  .legal-link {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold); border-radius: 4px; padding: 1px 7px;
+    font-size: 11.5px; font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer; transition: all 0.15s; text-decoration: none; vertical-align: middle; margin: 0 2px;
+  }
+  .legal-link:hover { background: var(--gold-glow); border-color: var(--gold); }
+  .ecli-warn {
+    display: inline-block; background: rgba(220,120,50,0.25); color: #e07a30;
+    border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 700;
+    cursor: help; margin-left: 2px; vertical-align: middle; line-height: 1.4;
+  }
+  .ecli-link { border-color: rgba(220,120,50,0.4); }
   .viewer-empty {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 8px; color: var(--text-faint); padding: 20px; text-align: center;
@@ -240,7 +349,11 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
     padding: 2px 4px 2px 8px; border-radius: 2px; scroll-margin-top: 20px;
   }
   .no-docs { font-size: 11px; color: var(--text-faint); text-align: center; padding: 20px 16px; font-style: italic; line-height: 1.6; }
-  .load-btns { display: flex; gap: 6px; margin-top: 10px; }
+  .load-btns { display: flex; gap: 6px; margin-top: 8px; }
+  .drop-zone-label {
+    font-size: 10px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--text-faint); margin-top: 10px; margin-bottom: 2px;
+  }
   .load-btn {
     flex: 1; background: var(--gold-glow); border: 1px solid var(--gold-dim);
     color: var(--gold); border-radius: 5px; padding: 6px 8px;
@@ -254,6 +367,40 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
     display: flex; align-items: center; justify-content: space-between;
     padding: 4px 10px 2px; flex-shrink: 0;
   }
+  /* Context / cost status bar */
+  .ctx-bar {
+    display: none; flex-shrink: 0;
+    margin: 6px 10px 2px; border-radius: 7px;
+    border: 1px solid var(--border-light); overflow: hidden;
+  }
+  .ctx-bar.visible { display: block; }
+  .ctx-bar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 10px 3px;
+  }
+  .ctx-bar-label {
+    font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint);
+  }
+  .ctx-bar-tokens { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); }
+  .ctx-bar-track {
+    height: 4px; background: var(--border); margin: 0 10px 6px;
+    border-radius: 2px; overflow: hidden;
+  }
+  .ctx-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s, background 0.4s; }
+  .ctx-bar-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 10px 6px; gap: 6px;
+  }
+  .ctx-badge {
+    font-size: 10px; padding: 1px 7px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace; font-weight: 500; border: 1px solid;
+  }
+  .ctx-badge-green  { background: rgba(78,205,100,0.12); border-color: rgba(78,205,100,0.3); color: #4ecd64; }
+  .ctx-badge-yellow { background: rgba(230,200,60,0.12); border-color: rgba(230,200,60,0.3);  color: #e6c83c; }
+  .ctx-badge-orange { background: rgba(230,140,40,0.12); border-color: rgba(230,140,40,0.3);  color: #e68c28; }
+  .ctx-badge-red    { background: rgba(220,70,70,0.12);  border-color: rgba(220,70,70,0.3);   color: #dc4646; }
+  .ctx-cost { font-size: 10px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; }
   .doc-count { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-faint); }
   .all-btn {
     font-size: 10px; padding: 2px 8px; border-radius: 4px; cursor: pointer;
@@ -450,7 +597,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 <header>
   <div class="header-icon">⚖</div>
   <h1>Legal Dossier <span>AI</span> Assistent</h1>
-  <div class="header-meta">claude-sonnet-4 · RAG · bronverwijzing</div>
+  <div class="header-meta">claude-sonnet-4 · documentanalyse · bronverwijzing</div>
+  <span class="session-cost" id="session-cost" title="Geschatte kosten deze sessie (input + output tokens)">sessie: $0,0000</span>
   <div class="privacy-badge">⚠️ AVG-aandachtspunten
     <div class="privacy-tooltip">
       <strong>🔒 Wat lokaal blijft</strong>
@@ -479,16 +627,30 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
       <input type="file" id="folder-input" webkitdirectory multiple>
       <div class="drop-zone-icon">📂</div>
       <p>Sleep bestanden of een map hierheen</p>
+      <div class="drop-zone-label">Dossier selecteren</div>
       <div class="load-btns">
-        <button class="load-btn load-btn-folder" id="btn-dossier">🗂 Dossier laden</button>
+        <button class="load-btn load-btn-folder" id="btn-dossier">💻 Lokaal</button>
         <button class="load-btn load-btn-sp" id="btn-sharepoint">☁ SharePoint</button>
       </div>
       <div class="sp-login-badge" id="sp-login-badge">✓ Ingelogd bij Microsoft</div>
-      <div class="formats">.txt · .md · .docx · .eml · .pdf</div>
+      <div class="formats">.txt · .docx · .eml · .pdf</div>
     </div>
     <div class="doc-list-header" id="doc-list-header" style="display:none;">
       <span class="doc-count" id="doc-count"></span>
       <button class="all-btn" id="btn-all" title="Wis selectie">☑ Alles</button>
+    </div>
+    <div class="ctx-bar" id="ctx-bar">
+      <div class="ctx-bar-header">
+        <span class="ctx-bar-label">Context</span>
+        <span class="ctx-bar-tokens" id="ctx-tokens">—</span>
+      </div>
+      <div class="ctx-bar-track">
+        <div class="ctx-bar-fill" id="ctx-fill" style="width:0%"></div>
+      </div>
+      <div class="ctx-bar-footer">
+        <span class="ctx-badge" id="ctx-badge">—</span>
+        <span class="ctx-cost" id="ctx-cost"></span>
+      </div>
     </div>
     <div class="doc-list" id="doc-list">
       <div class="no-docs">Nog geen documenten geladen.<br>Voeg bestanden toe om te starten.</div>
@@ -500,7 +662,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
       <div class="chat-empty" id="chat-empty">
         <div class="chat-empty-icon">⚖️</div>
         <h2>Stel een vraag over uw dossier</h2>
-        <p>Laad een dossier via het linkerpaneel. De AI genereert automatisch een overzicht en u kunt daarna gerichte vragen stellen. Bronverwijzingen zijn klikbaar.</p>
+        <p>Laad een dossier via het linkerpaneel, of schakel de wetgeving-toggle in voor algemene juridische vragen zonder dossier. Bronverwijzingen zijn klikbaar.</p>
       </div>
     </div>
     <div class="templates-bar" id="templates-bar">
@@ -512,6 +674,16 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
       <button class="tpl-btn" data-tpl="risicos">⚠️ Juridische risico's</button>
       <button class="tpl-btn" data-tpl="tegenstrijdigheden">🔍 Tegenstrijdigheden</button>
       <button class="tpl-btn" data-tpl="vorderingen">⚖️ Vorderingen & grondslagen</button>
+    </div>
+    <div class="wet-toggle-bar">
+      <span class="wet-toggle-label">⚖ Wetgeving &amp; jurisprudentie raadplegen
+        <span>— Claude citeert wetsartikelen en uitspraken · verifieer ECLI-nummers altijd op rechtspraak.nl</span>
+      </span>
+      <span class="wet-badge off" id="wet-badge">uit</span>
+      <label class="wet-switch">
+        <input type="checkbox" id="wet-toggle">
+        <span class="wet-slider"></span>
+      </label>
     </div>
     <div class="input-area">
       <div class="input-row">
@@ -540,6 +712,19 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
           <button class="viewer-close" id="viewer-close">✕</button>
         </div>
         <div class="viewer-content" id="viewer-content"></div>
+      </div>
+      <div id="viewer-web" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+        <div class="viewer-header">
+          <span class="viewer-title" id="viewer-web-title"><strong>—</strong></span>
+          <button class="viewer-close" id="viewer-web-close">✕</button>
+        </div>
+        <div class="viewer-web-url" id="viewer-web-url"></div>
+        <iframe id="viewer-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        <div class="viewer-web-blocked" id="viewer-web-blocked" style="display:none;">
+          <div style="font-size:24px;opacity:0.3;">🔒</div>
+          <p>Deze website kan niet worden weergegeven in het paneel (beveiligingsbeperking).<br>Klik onderstaande link om de pagina in een nieuw tabblad te openen.</p>
+          <a id="viewer-web-extlink" href="#" target="_blank">Openen in nieuw tabblad ↗</a>
+        </div>
       </div>
     </div>
   </div>
@@ -648,7 +833,7 @@ async function readFile(file) {
   return { text: await file.text(), type: ext };
 }
 
-const SUPPORTED = ['txt','md','docx','eml','pdf'];
+const SUPPORTED = ['txt','docx','eml','pdf'];
 
 async function addFiles(files) {
   const prevCount = state.docOrder.length;
@@ -693,6 +878,9 @@ function renderDocList() {
   if (sel === 0) si.textContent = `Scope: alle (${n})`;
   else if (sel === 1) si.textContent = `Scope: ${state.docs[[...state.selectedDocs][0]]?.name || '—'}`;
   else si.textContent = `Scope: ${sel} bestanden`;
+
+  updateCtxBar();
+  updateInputHints();
 
   state.docOrder.forEach(id => {
     const doc = state.docs[id];
@@ -755,6 +943,53 @@ function removeDoc(id) {
   state.selectedDocs.delete(id);
   if (state.viewingDoc === id) closeViewer();
   renderDocList();
+}
+
+// ── Context / cost status bar ──────────────────────────────────────────────
+function updateCtxBar() {
+  const bar = document.getElementById('ctx-bar');
+  const scopeDocs = getScopeDocs();
+  if (!scopeDocs.length) { bar.classList.remove('visible'); return; }
+  bar.classList.add('visible');
+
+  // Estimate tokens: 1 token ≈ 3.5 chars for Dutch text
+  const totalChars = scopeDocs.reduce((s, d) => s + (d.text ? d.text.length : 0), 0);
+  const sysPromptTokens = 600; // system prompt + conversation overhead estimate
+  const tokens = Math.round(totalChars / 3.5) + sysPromptTokens;
+  const MAX_TOKENS = 180000;
+  const pct = Math.min(100, Math.round(tokens / MAX_TOKENS * 100));
+
+  // Cost: $3 per 1M input tokens
+  const costPerQ = (tokens / 1_000_000) * 3;
+  const costStr = costPerQ < 0.005
+    ? '< $0,01 per vraag'
+    : '$' + costPerQ.toFixed(2) + ' per vraag';
+
+  // Tier
+  let tier, label, fillColor;
+  if (tokens < 40000) {
+    tier = 'green';  label = '🟢 Snel & goedkoop';
+  } else if (tokens < 80000) {
+    tier = 'yellow'; label = '🟡 Goed bruikbaar';
+  } else if (tokens < 140000) {
+    tier = 'orange'; label = '🟠 Traag / kostbaar';
+  } else {
+    tier = 'red';    label = '🔴 Limiet in zicht';
+  }
+  const fillColors = { green:'#4ecd64', yellow:'#e6c83c', orange:'#e68c28', red:'#dc4646' };
+
+  // Format token count
+  const tokStr = tokens >= 1000
+    ? (tokens / 1000).toFixed(1) + 'k tokens'
+    : tokens + ' tokens';
+
+  document.getElementById('ctx-tokens').textContent = tokStr + ' · ' + pct + '%';
+  document.getElementById('ctx-fill').style.width = pct + '%';
+  document.getElementById('ctx-fill').style.background = fillColors[tier];
+  const badge = document.getElementById('ctx-badge');
+  badge.textContent = label;
+  badge.className = 'ctx-badge ctx-badge-' + tier;
+  document.getElementById('ctx-cost').textContent = costStr;
 }
 
 // Scope helpers
@@ -860,9 +1095,42 @@ function closeViewer() {
   state.viewingDoc = null;
   document.getElementById('viewer-empty').style.display = 'flex';
   document.getElementById('viewer-doc').style.display = 'none';
+  document.getElementById('viewer-web').style.display = 'none';
   renderDocList();
 }
 document.getElementById('viewer-close').onclick = closeViewer;
+document.getElementById('viewer-web-close').onclick = closeViewer;
+
+function viewWeb(url, title) {
+  document.getElementById('viewer-empty').style.display = 'none';
+  document.getElementById('viewer-doc').style.display = 'none';
+  const webPanel = document.getElementById('viewer-web');
+  webPanel.style.display = 'flex';
+  document.getElementById('viewer-web-title').innerHTML = '<strong>' + esc(title) + '</strong>';
+  const urlEl = document.getElementById('viewer-web-url');
+  urlEl.innerHTML = '<a href="' + esc(url) + '" target="_blank">' + esc(url) + ' ↗</a>';
+  document.getElementById('viewer-web-extlink').href = url;
+  const iframe = document.getElementById('viewer-iframe');
+  const blocked = document.getElementById('viewer-web-blocked');
+  iframe.style.display = 'block';
+  blocked.style.display = 'none';
+  iframe.src = url;
+  // Detect if iframe load fails (X-Frame-Options block)
+  iframe.onerror = () => { iframe.style.display='none'; blocked.style.display='flex'; };
+  // Some sites block silently — show fallback after timeout if no content
+  const t = setTimeout(() => {
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc || !doc.body || doc.body.innerHTML === '') {
+        iframe.style.display = 'none'; blocked.style.display = 'flex';
+      }
+    } catch(e) {
+      // Cross-origin: if we can't read it, it loaded fine (CORS, not blocked)
+    }
+  }, 4000);
+  iframe.onload = () => clearTimeout(t);
+}
+window.viewWeb = viewWeb;
 
 // Chat rendering
 function renderMessages() {
@@ -875,12 +1143,14 @@ function renderMessages() {
     const scopeTag = (msg.role==='user' && msg.scopeLabel && !msg.isAuto)
       ? `<span class="msg-scope-tag">${esc(msg.scopeLabel)}</span>` : '';
     const autoTag = msg.isAuto ? `<span class="msg-auto-tag">🤖 automatisch</span>` : '';
+    const searchTag = (msg.role === 'ai' && msg.webSearches > 0)
+      ? `<span class="msg-search-tag" title="${msg.webSearches} web search${msg.webSearches===1?'':'es'} uitgevoerd op rechtspraak.nl / wetten.nl">🔍 live gezocht</span>` : '';
     const body = msg.role === 'ai' ? formatAI(msg.content)
       : `<p style="${msg.isAuto?'font-style:italic;color:var(--text-faint);font-size:12px;':''}">${esc(msg.content).replace(/\n/g,'<br>')}</p>`;
     div.innerHTML = `<div class="msg-header">
         <div class="msg-avatar">${msg.role==='user'?'U':'AI'}</div>
         <span class="msg-role">${msg.role==='user'?'Gebruiker':'Assistent'}</span>
-        ${scopeTag}${autoTag}
+        ${scopeTag}${autoTag}${searchTag}
       </div>
       <div class="msg-body">${body}</div>`;
     area.appendChild(div);
@@ -891,18 +1161,91 @@ function renderMessages() {
 function formatAI(text) {
   let html = esc(text);
   let srcNum = 0;
+
+  // Document source links [[SOURCE:id|fragment]]
   html = html.replace(/\[\[SOURCE:([^\|]+)\|([^\]]+)\]\]/g, (_, id, frag) => {
     srcNum++;
     const doc = state.docs[id];
     const label = doc ? doc.name.replace(/\.[^.]+$/,'') : id;
     return `<a class="source-link" onclick="srcClick('${escA(id)}','${escA(frag)}')" title="${esc(label)}">📎 [${srcNum}] ${esc(label)}</a>`;
   });
+
+  // Known iframe-blocked domains → open directly in new tab instead of bronviewer
+  function openLegal(url, title) {
+    window.open(url, '_blank', 'noopener');
+  }
+
+  // Helper: render an ECLI as a link that opens directly in new tab (rechtspraak.nl blocks iframes)
+  function ecliHtml(ecli) {
+    const id = ecli.trim();
+    const rsUrl = 'https://uitspraken.rechtspraak.nl/details?id=' + encodeURIComponent(id);
+    return `<a class="legal-link ecli-link" onclick="event.preventDefault();openLegal('${escA(rsUrl)}','${escA(id)}')" href="${esc(rsUrl)}" target="_blank" rel="noopener" title="Bekijk op rechtspraak.nl (opent in nieuw tabblad)">⚖ ${esc(id)} <span class="ecli-warn" title="Verifieer: Claude kan ECLI-nummers soms onjuist weergeven">?</span></a>`;
+  }
+
+  // ECLI links: markdown [ECLI:NL:..](url) or plain ECLI:NL:XX:year:id
+  // First handle markdown-style links that Claude may produce
+  html = html.replace(/\[([^\]]*ECLI:[^\]]+)\]\((https?:\/\/[^)]+)\)/g, (_, label) => {
+    return ecliHtml(label.trim());
+  });
+
+  // Plain ECLI numbers not yet linked
+  html = html.replace(/\bECLI:NL:([A-Z]+):(\d{4}):([A-Z0-9]+)\b(?![^<]*<\/a>)/g, (match) => {
+    return ecliHtml(match);
+  });
+
+  // Wetsartikelen — breed patroon dat ook "Artikel 6 WVW 1994" en volledige wetnamen vangt
+  // Mapping: afkorting/naam → BWB-id voor directe wetten.nl link
+  const WET_MAP = {
+    'BW': 'BWBR0005290', 'Burgerlijk Wetboek': 'BWBR0005290',
+    'WvSr': 'BWBR0001854', 'Sr': 'BWBR0001854', 'WvS': 'BWBR0001854', 'Wetboek van Strafrecht': 'BWBR0001854',
+    'Sv': 'BWBR0001903', 'WvSv': 'BWBR0001903', 'Wetboek van Strafvordering': 'BWBR0001903',
+    'Rv': 'BWBR0001827', 'Wetboek van Burgerlijke Rechtsvordering': 'BWBR0001827',
+    'Awb': 'BWBR0005537', 'AWB': 'BWBR0005537', 'Algemene wet bestuursrecht': 'BWBR0005537',
+    'WOR': 'BWBR0002747', 'Wet op de ondernemingsraden': 'BWBR0002747',
+    'Wft': 'BWBR0020368', 'WFT': 'BWBR0020368', 'Wet op het financieel toezicht': 'BWBR0020368',
+    'WVW': 'BWBR0006622', 'WVW 1994': 'BWBR0006622', 'Wegenverkeerswet': 'BWBR0006622', 'Wegenverkeerswet 1994': 'BWBR0006622',
+    'RVV': 'BWBR0004825', 'RVV 1990': 'BWBR0004825',
+    'Arbeidsomstandighedenwet': 'BWBR0010346', 'Arbowet': 'BWBR0010346',
+    'BBA': 'BWBR0003402',
+    'Pachtwet': 'BWBR0002398',
+    'Huurwet': 'BWBR0001947',
+    'WAM': 'BWBR0002415', 'Wet aansprakelijkheidsverzekering motorrijtuigen': 'BWBR0002415',
+    'AOW': 'BWBR0002221', 'Algemene Ouderdomswet': 'BWBR0002221',
+    'WW': 'BWBR0004045', 'Werkloosheidswet': 'BWBR0004045',
+    'ZW': 'BWBR0001888', 'Ziektewet': 'BWBR0001888',
+    'WIA': 'BWBR0019057', 'Wet werk en inkomen naar arbeidsvermogen': 'BWBR0019057',
+    'GW': 'BWBR0001840', 'Grondwet': 'BWBR0001840',
+    'Fw': 'BWBR0001860', 'Faillissementswet': 'BWBR0001860',
+    'WGBO': 'BWBR0005290', // onderdeel BW
+    'AVG': null, // EU-verordening, geen BWB
+  };
+
+  // Match: "art(ikel). X[:Y][a-z]? [Wetsnaam/afkorting[ jaar]]"
+  const wetNamen = Object.keys(WET_MAP)
+    .sort((a,b) => b.length - a.length) // langste eerst zodat "Wegenverkeerswet 1994" voor "WVW" matcht
+    .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+  const wetRegex = new RegExp(
+    '\\b(?:artikel|art\\.)\\s*(\\d+[a-z]?(?:[:\\.]\\d+[a-z]?)?)\\s+(' + wetNamen + ')\\b(?:\\s*\\(?\\d{4}\\)?)?',
+    'gi'
+  );
+
+  html = html.replace(wetRegex, (match, artikel, wet) => {
+    const wetKey = Object.keys(WET_MAP).find(k => k.toLowerCase() === wet.toLowerCase()) || wet;
+    const bwbId = WET_MAP[wetKey];
+    const url = bwbId
+      ? `https://wetten.overheid.nl/${bwbId}`
+      : `https://wetten.overheid.nl/zoeken?zoekterm=${encodeURIComponent(wet + ' artikel ' + artikel)}`;
+    return `<a class="legal-link" onclick="event.preventDefault();openLegal('${escA(url)}','${escA(match)}')" href="${esc(url)}" target="_blank" rel="noopener" title="Bekijk wet op wetten.nl (opent in nieuw tabblad)">📜 ${esc(match)}</a>`;
+  });
+
   html = html.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
   html = html.replace(/\*([^*]+)\*/g,'<em>$1</em>');
   html = html.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');
   return '<p>' + html + '</p>';
 }
 window.srcClick = (id, frag) => viewDoc(id, frag);
+window.openLegal = (url, title) => window.open(url, '_blank', 'noopener');
 
 // Template prompts
 const TEMPLATES = {
@@ -970,6 +1313,7 @@ Sluit af met 1 samenvattende zin over het gehele dossier. Geen bronverwijzingen 
     hideThinking();
     const data = await res.json();
     const txt = res.ok ? ((data.content||[]).map(b=>b.text||'').join('') || '(leeg)') : `⚠ ${data?.error?.message||'Fout'}`;
+    if (res.ok) addSessionCost(data.usage);
     state.messages.push({ role: 'ai', content: txt });
   } catch(e) {
     hideThinking();
@@ -986,7 +1330,58 @@ function getHeaders() {
   return h;
 }
 
+// ── Sessiekosten ──────────────────────────────────────────────────────────
+// Prijzen Claude Sonnet 4: $3 / 1M input tokens, $15 / 1M output tokens
+const PRICE_INPUT  = 3  / 1_000_000;
+const PRICE_OUTPUT = 15 / 1_000_000;
+let sessionCost = 0;
+let sessionCalls = 0;
+
+function addSessionCost(usage) {
+  if (!usage) return;
+  const input  = usage.input_tokens  || 0;
+  const output = usage.output_tokens || 0;
+  sessionCost  += input * PRICE_INPUT + output * PRICE_OUTPUT;
+  sessionCalls += 1;
+  updateSessionCostDisplay();
+}
+
+function updateSessionCostDisplay() {
+  const el = document.getElementById('session-cost');
+  if (!el) return;
+  let label;
+  if (sessionCost < 0.01) {
+    label = '$' + sessionCost.toFixed(4);
+  } else if (sessionCost < 1) {
+    label = '$' + sessionCost.toFixed(3);
+  } else {
+    label = '$' + sessionCost.toFixed(2);
+  }
+  const vraagLabel = sessionCalls === 1 ? 'vraag' : 'vragen';
+  el.textContent = 'sessie: ' + label + ' (' + sessionCalls + ' ' + vraagLabel + ')';
+  el.classList.toggle('has-cost', sessionCost > 0);
+  el.title = `Geschatte sessiekosten\nInput: $${PRICE_INPUT.toFixed(7)}/token · Output: $${PRICE_OUTPUT.toFixed(7)}/token\nSessie eindigt bij sluiten van de tab.`;
+}
+
 function buildSystem(docs) {
+  const wetModus = document.getElementById('wet-toggle')?.checked;
+  const wetExtra = wetModus ? `
+
+WETGEVING & JURISPRUDENTIE MODUS IS INGESCHAKELD:
+${docs.length ? '6' : '2'}. Verbind de bevindingen ${docs.length ? 'uit de documenten ' : ''}actief met relevante Nederlandse wetgeving en jurisprudentie:
+   a. WETSARTIKELEN: Gebruik altijd de notatie "artikel X [Wetsnaam]" bij eerste vermelding, gevolgd door de afkorting, bijv: "artikel 6 Wegenverkeerswet 1994 (WVW 1994)", "artikel 6:162 Burgerlijk Wetboek (BW)", "artikel 7:629 BW", "artikel 843a Wetboek van Burgerlijke Rechtsvordering (Rv)". Dit formaat is vereist zodat de applicatie automatisch klikbare links kan genereren.
+   b. JURISPRUDENTIE — STRENGE REGEL: Noem ALLEEN uitspraken waarvan u het ECLI-nummer met zekerheid kent. VERZIN NOOIT een ECLI-nummer. Als u een uitspraak relevant vindt maar het exacte ECLI niet zeker weet, beschrijf de uitspraak dan in woorden (bijv. "het Kelderluik-arrest, HR 5 november 1965") zonder ECLI-nummer. Gebruik voor bekende uitspraken het kale formaat: ECLI:NL:HR:2019:1212 (geen markdown-link, de applicatie maakt er zelf een link van).
+   c. ACTUALITEIT: Vermeld expliciet als uw juridische kennis mogelijk niet de meest recente wijzigingen weerspiegelt (cutoff medio 2025) en adviseer verificatie op wetten.nl of rechtspraak.nl.
+   d. STRUCTUUR: Behandel wetgeving en jurisprudentie in een apart kopje "⚖ Juridisch kader"${docs.length ? ' na de documentanalyse' : ''}.` : '';
+
+  if (!docs.length) {
+    return `Je bent een gespecialiseerde juridische AI-assistent voor advocaten en juristen in Nederland.
+
+INSTRUCTIES:
+1. Beantwoord juridische vragen nauwkeurig en professioneel.
+2. Antwoord altijd in het Nederlands, juridisch nauwkeurig en professioneel van toon.${wetExtra}`;
+  }
+
   return `Je bent een gespecialiseerde juridische AI-assistent voor advocaten en juristen in Nederland.
 
 Beschikbare documenten:
@@ -1001,8 +1396,34 @@ INSTRUCTIES:
    - Kies een uniek stukje tekst dat nergens anders in het document voorkomt.
 3. Gebruik gestructureerde output (koppen, tabellen, lijsten) waar dat de leesbaarheid bevordert.
 4. Als informatie niet in de documenten staat, zeg dat expliciet.
-5. Antwoord altijd in het Nederlands, juridisch nauwkeurig en professioneel van toon.`;
+5. Antwoord altijd in het Nederlands, juridisch nauwkeurig en professioneel van toon.${wetExtra}`;
 }
+
+// Update placeholder and chat-empty text based on wet-toggle
+function updateInputHints() {
+  const wetModus = document.getElementById('wet-toggle')?.checked;
+  const hasDocs = state.docOrder.length > 0;
+  const inp = document.getElementById('question-input');
+  const emptyTitle = document.querySelector('.chat-empty h2');
+  const emptyText  = document.querySelector('.chat-empty p');
+  const badge = document.getElementById('wet-badge');
+  if (badge) { badge.textContent = wetModus ? 'aan' : 'uit'; badge.className = 'wet-badge ' + (wetModus ? 'on' : 'off'); }
+  if (wetModus && !hasDocs) {
+    if (inp) inp.placeholder = 'Stel een juridische vraag (wetgeving & jurisprudentie)…';
+    if (emptyTitle) emptyTitle.textContent = 'Stel een juridische vraag';
+    if (emptyText)  emptyText.textContent  = 'De wetgeving-toggle staat aan. U kunt direct vragen stellen over Nederlandse wet- en regelgeving, zonder dossier te laden. Bronlinks naar rechtspraak.nl en wetten.nl zijn klikbaar.';
+  } else if (hasDocs) {
+    if (inp) inp.placeholder = 'Stel een vraag over de documenten…';
+    if (emptyTitle) emptyTitle.textContent = 'Stel een vraag over uw dossier';
+    if (emptyText)  emptyText.textContent  = 'Laad een dossier via het linkerpaneel. De AI genereert automatisch een overzicht en u kunt daarna gerichte vragen stellen. Bronverwijzingen zijn klikbaar.';
+  } else {
+    if (inp) inp.placeholder = 'Laad een dossier of zet de wetgeving-toggle aan…';
+    if (emptyTitle) emptyTitle.textContent = 'Stel een vraag over uw dossier';
+    if (emptyText)  emptyText.textContent  = 'Laad een dossier via het linkerpaneel, of schakel de wetgeving-toggle in voor algemene juridische vragen zonder dossier. Bronverwijzingen zijn klikbaar.';
+  }
+}
+document.getElementById('wet-toggle').addEventListener('change', updateInputHints);
+updateInputHints();
 function showThinking() {
   document.getElementById('chat-empty').style.display = 'none';
   const area = document.getElementById('chat-area');
@@ -1017,13 +1438,26 @@ function hideThinking() { const e = document.getElementById('thinking-msg'); if 
 
 // Claude API call
 async function askClaude(question) {
-  if (!state.docOrder.length) { alert('Laad eerst een of meer documenten.'); return; }
-  const docs = getScopeDocs();
-  if (!docs.length) { alert('Geen documenten beschikbaar.'); return; }
+  const wetModus = document.getElementById('wet-toggle')?.checked;
+  const hasDocs = state.docOrder.length > 0;
 
-  const ctx = docs.map(d =>
-    `=== DOCUMENT ID: ${d.id} | Naam: ${d.name} ===\n${d.text.substring(0,8000)}\n=== EINDE ${d.id} ===`
-  ).join('\n\n');
+  if (!hasDocs && !wetModus) {
+    alert('Laad eerst een of meer documenten, of schakel de wetgeving-toggle in voor algemene juridische vragen.');
+    return;
+  }
+
+  const docs = hasDocs ? getScopeDocs() : [];
+
+  // Build context: documents (if any) + question
+  let userContent;
+  if (docs.length) {
+    const ctx = docs.map(d =>
+      `=== DOCUMENT ID: ${d.id} | Naam: ${d.name} ===\n${d.text.substring(0,8000)}\n=== EINDE ${d.id} ===`
+    ).join('\n\n');
+    userContent = ctx + '\n\n---\nVRAAG: ' + question;
+  } else {
+    userContent = question;
+  }
 
   const system = buildSystem(docs);
 
@@ -1039,7 +1473,7 @@ async function askClaude(question) {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         system,
-        messages: [{ role: 'user', content: ctx + '\n\n---\nVRAAG: ' + question }],
+        messages: [{ role: 'user', content: userContent }],
       }),
     });
     hideThinking();
@@ -1049,6 +1483,7 @@ async function askClaude(question) {
     } else {
       const data = await res.json();
       const txt = (data.content||[]).map(b=>b.text||'').join('') || '(leeg antwoord)';
+      addSessionCost(data.usage);
       state.messages.push({ role:'ai', content: txt });
     }
   } catch(e) {
@@ -1063,8 +1498,45 @@ async function askClaude(question) {
 async function sendQuestion() {
   const inp = document.getElementById('question-input');
   const q = inp.value.trim(); if (!q) return;
+  const toggle = document.getElementById('wet-toggle');
+  // If no docs loaded and toggle is off: ask first
+  if (!Object.keys(state.docs).length && !toggle.checked) {
+    inp.value = ''; inp.style.height = 'auto';
+    showWetConfirm(q);
+    return;
+  }
   inp.value = ''; inp.style.height = 'auto';
   await askClaude(q);
+}
+
+function showWetConfirm(pendingQuestion) {
+  const area = document.getElementById('chat-area');
+  document.getElementById('chat-empty').style.display = 'none';
+  // Remove existing confirm if any
+  const prev = document.getElementById('wet-confirm-bar');
+  if (prev) prev.remove();
+  const bar = document.createElement('div');
+  bar.className = 'wet-confirm';
+  bar.id = 'wet-confirm-bar';
+  bar.innerHTML =
+    `<span>⚖ Wilt u ook openbare wetgeving &amp; jurisprudentie raadplegen?</span>` +
+    `<div class="wet-confirm-btns">` +
+      `<button class="wet-confirm-btn yes" id="wc-yes">Ja, zet aan</button>` +
+      `<button class="wet-confirm-btn no"  id="wc-no">Nee, bedankt</button>` +
+    `</div>`;
+  area.appendChild(bar);
+  area.scrollTop = area.scrollHeight;
+  document.getElementById('wc-yes').onclick = () => {
+    bar.remove();
+    const toggle = document.getElementById('wet-toggle');
+    toggle.checked = true;
+    updateInputHints();
+    askClaude(pendingQuestion);
+  };
+  document.getElementById('wc-no').onclick = () => {
+    bar.remove();
+    askClaude(pendingQuestion);
+  };
 }
 document.getElementById('send-btn').onclick = sendQuestion;
 document.getElementById('question-input').addEventListener('keydown', e => {
@@ -1095,7 +1567,7 @@ folderi.onchange = e => {
     !f.name.startsWith('~$') &&
     SUPPORTED.includes(f.name.split('.').pop().toLowerCase())
   );
-  if (!files.length) { alert('Geen ondersteunde bestanden (.txt .md .docx .eml .pdf) gevonden in deze map.'); return; }
+  if (!files.length) { alert('Geen ondersteunde bestanden (.txt .docx .eml .pdf) gevonden in deze map.'); return; }
   addFiles(files); folderi.value='';
 };
 
@@ -1391,7 +1863,7 @@ async function spBrowseFolder(driveId, itemId, siteId, siteName, crumbsJson, lab
       document.getElementById('sp-file-list').innerHTML = '<div class="sp-empty">Deze map is leeg.</div>';
       return;
     }
-    var SUPPORTED_EXT = ['txt','md','docx','eml','pdf'];
+    var SUPPORTED_EXT = ['txt','docx','eml','pdf'];
     // next crumbs for children
     var nextPrev = encodeURIComponent(JSON.stringify(prevCrumbs.concat([{ label: label }])));
     document.getElementById('sp-file-list').innerHTML = items.map(function(it) {
@@ -1449,7 +1921,7 @@ function spUpdateFooter() {
 
 async function addSingleFile(file) {
   var ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (file.name.startsWith('~$') || !['txt','md','docx','eml','pdf'].includes(ext)) return;
+  if (file.name.startsWith('~$') || !['txt','docx','eml','pdf'].includes(ext)) return;
   var id = 'doc_' + (++docCounter);
   state.docs[id] = { name: file.name, type: ext, text: '', size: file.size };
   state.docOrder.push(id);
